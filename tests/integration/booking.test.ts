@@ -280,26 +280,25 @@ describe("PUT /booking/:bookingId", () => {
       expect(response.status).toBe(httpStatus.FORBIDDEN);
     });
 
-    it("should respond with status 200 when booking is updated", async () => {
+    it("200", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-
-      const ticketType = await createTicketTypeWithHotel();
-      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-      await createPayment(ticket.id, ticketType.price);
-
+      const ticketType = await createValidTicketType();
+      await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
       const hotel = await createHotel();
       const room = await createRoomHotel(hotel);
+      console.log(room);
       const booking = await createBooking(user);
-      const newBooking = await createBooking(user, room);
-      const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send({ roomId: room.id });
 
+      const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send({
+        roomId: room.id,
+      });
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
-        bookingId: response.body,
+        bookingId: response.body.bookingId,
       });
-    });
+    }); 
   });
 });
  
