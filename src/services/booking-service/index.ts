@@ -43,8 +43,6 @@ async function putBooking(roomId: number, bookingId: number) {
 
   const updateBooking = await bookingRepository.updateBookingById(roomId, bookingId);
 
-  if(!updateBooking) throw notFoundError();
-
   return updateBooking;
 }
 
