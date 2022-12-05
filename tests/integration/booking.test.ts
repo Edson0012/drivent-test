@@ -1,10 +1,11 @@
 import app, { init } from "@/app";
+import { prisma } from "@/config";
 import httpStatus from "http-status";
 import supertest from "supertest";
 import faker from "@faker-js/faker";
 import { cleanDb, generateValidToken } from "../helpers";
 import { createBooking, createEnrollmentWithAddress, createHotel, createPayment, createTicket, 
-  createTicketTypeWithHotel, createUser, createValidTicketType, createTicketTypeRemote, createTicketInvalid } from "../factories";
+  createTicketTypeWithHotel, createUser, createValidTicketType, createTicketTypeRemote, createTicketInvalid, createRoomByHotelId } from "../factories";
 import * as jwt from "jsonwebtoken";
 import { TicketStatus } from "@prisma/client";
 import { createRoomHotel, createRoomWithOne } from "../factories/rooms-factory";
@@ -277,6 +278,27 @@ describe("PUT /booking/:bookingId", () => {
       const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send({ roomId: createRoom.id });
 
       expect(response.status).toBe(httpStatus.FORBIDDEN);
+    });
+
+    it("should respond with status 200 when booking is updated", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+
+      const hotel = await createHotel();
+      const room = await createRoomHotel(hotel);
+      const booking = await createBooking(user);
+      const newBooking = await createBooking(user, room);
+      const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send({ roomId: room.id });
+
+      expect(response.status).toBe(httpStatus.OK);
+      expect(response.body).toEqual({
+        bookingId: response.body,
+      });
     });
   });
 });

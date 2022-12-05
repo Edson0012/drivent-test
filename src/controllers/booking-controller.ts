@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AuthenticatedRequest } from "@/middlewares";
 import { bookingService } from "@/services/booking-service";
-import { RoomId } from "@/protocols";
+import { BookingId, RoomId } from "@/protocols";
 
 export async function getBookingByUser(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
@@ -44,11 +44,11 @@ export async function postBookingByRoomId(req: AuthenticatedRequest, res: Respon
 
 export async function putBookingByBookingId( req: AuthenticatedRequest, res: Response) {
   const { roomId } = req.body as RoomId;
-  const { bookingId } = req.params;
+  const bookingId = Number(req.params.bookingId);
 
   try {
-    const result = await bookingService.putBooking(roomId, +bookingId);
-    return res.status(httpStatus.OK).send({ bookingId: result.id });
+    const result = await bookingService.putBooking(roomId, bookingId);
+    return res.status(httpStatus.OK).send({ bookingId: result });
   } catch( error ) {
     if(error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
